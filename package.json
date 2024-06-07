@@ -1,0 +1,15 @@
+{
+  "name": "server.js",
+  "version": "1.0.0",
+  "description": "web 322 server.js package.json",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Janakan Sureshraj",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
