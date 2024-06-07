@@ -1,3 +1,16 @@
+/*********************************************************************************
+
+WEB322 – Assignment 02
+I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part *  of this assignment has been copied manually or electronically from any other source (including 3rd party web sites) or distributed to other students.
+
+Name: Janakan Sureshraj_ 
+Student ID: 153073226
+Date: 7th of June 2024
+Vercel Web App URL: _______________________________________________________
+GitHub Repository URL: ______________________________________________________
+
+********************************************************************************/ 
+
 const express = require('express');
 const path = require('path');
 
@@ -9,7 +22,7 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 // static middleware to serve static files from the public folder
-app.use(express.static('public'));
+app.use(express.static(__dirname + '/public'));
 
 // route to redirect from '/' to '/about'
 app.get('/', (req, res) =>{
