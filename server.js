@@ -10,57 +10,147 @@ Vercel Web App URL: https://web322-app-janakan.vercel.app
 GitHub Repository URL: https://github.com/JanakanSureshraj/WEB322-App.git
 
 ********************************************************************************/ 
-
 const express = require('express');
 const path = require('path');
-
-// use store-service.js file to interact the data from server.js
 const storeService = require('./store-service');
+const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+const streamifier = require('streamifier');
 
-// create an express app
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// static middleware to serve static files from the public folder
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
-// route to redirect from '/' to '/about'
-app.get('/', (req, res) =>{
+// cloudinary configuraton for image storage
+cloudinary.config({
+    cloud_name: 'duouzaibp',
+    api_key: '814312793885764',   
+    api_secret: 'yYCh4Y5UZu2av_bN9q-HbY_Ubz8',
+    secure: true
+}); 
+
+const upload = multer(); // No { storage: storage } since we are not using disk storage
+// ROUTES
+
+// home page redirects to /about
+app.get('/', (req, res) => {
     res.redirect('/about');
 });
 
-// route to serve about.html from the views folder
-app.get('/about', (req, res) =>{
-    res.sendFile(__dirname + '/views/about.html');
+// about 
+app.get('/about', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'about.html'));
 });
 
-// route to get all published items
-app.get('/shop', (req, res) =>{
+// shop
+app.get('/shop', (req, res) => {
     storeService.getPublishedItems()
         .then(data => res.json(data))
-        .catch(err => res.status(500).json({message: err}));
-})
+        .catch(err => res.status(500).json({ message: err }));  
+});
 
-// route to get all items
+// items: all, by category, by minDate
 app.get('/items', (req, res) => {
-    storeService.getAllItems()
-        .then(data => res.json(data))
-        .catch(err => res.status(500).json({message: err}))
-})
+    const { category, minDate } = req.query;
 
-// route to get all categories
+    if (category) {
+        storeService.getItemsByCategory(category)
+            .then(data => res.json(data))
+            .catch(err => res.status(500).json({ message: err }));
+    } else if (minDate) {
+        storeService.getItemsByMinDate(minDate)
+            .then(data => res.json(data))
+            .catch(err => res.status(500).json({ message: err }));
+    } else {
+        storeService.getAllItems()
+            .then(data => res.json(data))
+            .catch(err => res.status(500).json({ message: err }));
+    }
+});
+
+// item by id
+app.get('/item/id', (req, res) => {
+    storeService.getItemById(req.params.id)
+        .then(data => res.json(data))
+        .catch(err => res.status(500).json({ message: err }));
+});
+
+// add item
+app.get('/items/add', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'addItem.html'));
+});
+
+// categories
 app.get('/categories', (req, res) => {
     storeService.getCategories()
         .then(data => res.json(data))
-        .catch(err => res.status(500).json({message: err}))
+        .catch(err => res.status(500).json({ message: err }));
 });
 
-// error-handler for unmatched routes- sends custom 404 page
-app.use((req, res) =>{
+// add item - form submission
+app.post('/items/add', upload.single("featureImage"), (req, res) => {
+    if (req.file) {
+        let streamUpload = (req) => {
+            return new Promise((resolve, reject) => {
+                let stream = cloudinary.uploader.upload_stream(
+                    (error, result) => {
+                        if (result) {
+                            resolve(result);
+                        } else {
+                            reject(error);
+                        }
+                    }
+                );
+                streamifier.createReadStream(req.file.buffer).pipe(stream);
+            });
+        };
+
+        async function upload(req) {
+            let result = await streamUpload(req);
+            console.log(result);
+            return result;
+        }
+
+        upload(req).then((uploaded) => {
+            processItem(uploaded.url);
+        }).catch((err) => {
+            console.error(err);
+            res.status(500).send("Error uploading image");
+        });
+    } else {
+        processItem("");
+    }
+
+    function processItem(imageUrl) {
+        req.body.featureImage = imageUrl;
+
+        // Process the req.body and add it as a new Item before redirecting to /items
+        let newItem = {
+            title: req.body.title,
+            price: req.body.price,
+            body: req.body.body,
+            category: req.body.category,
+            featureImage: req.body.featureImage,
+            published: req.body.published ? true : false
+        };
+
+        storeService.addItem(newItem)
+            .then(() => {
+                res.redirect('/items');
+            })
+            .catch(err => {
+                res.status(500).send("Unable to add item");
+            });
+    }
+});
+
+// custom 404 error page
+app.use((req, res) => {
     res.status(404).sendFile(path.join(__dirname, 'views', '404.html'));
 });
 
-// run the server only if the initialize function in store-service.js is successful
+// run the server only if store service is initialized
 storeService.initialize()
     .then(() => {
         app.listen(PORT, () => {
@@ -68,5 +158,5 @@ storeService.initialize()
         });
     })
     .catch(err => {
-        console.error("Unable to Start the Server", err);
+        console.error("Unable to start the server", err);
     });
