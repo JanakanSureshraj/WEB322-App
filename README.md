@@ -1,5 +1,6 @@
 Student Name: Janakan Sureshraj 
-
 Email: jsureshraj@myseneca.ca
 
-Date: 7th of June 2024
+Assignment Submissions
+AS2:  7th of June 2024
+AS3: 20th of June 2024

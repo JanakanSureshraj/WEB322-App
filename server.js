@@ -5,7 +5,7 @@ I declare that this assignment is my own work in accordance with Seneca  Academi
 
 Name: Janakan Sureshraj_ 
 Student ID: 153073226
-Date: 7th of June 2024
+Date: 20th of June 2024
 Vercel Web App URL: https://web322-app-janakan.vercel.app
 GitHub Repository URL: https://github.com/JanakanSureshraj/WEB322-App.git
 
