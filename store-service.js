@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-// data arrays 
+// Data arrays
 let items = [];
 let categories = [];
 
@@ -26,19 +26,19 @@ module.exports = {
         });
     },
 
-    getAllItems: function(){
+    getAllItems: function() {
         return new Promise((resolve, reject) => {
-            if(items.length > 0){
+            if (items.length > 0) {
                 resolve(items);
-            } else{
-                reject("no results returned")
+            } else {
+                reject("no results returned");
             }
-        })
-    }, 
+        });
+    },
 
     getPublishedItems: function() {
         return new Promise((resolve, reject) => {
-            const publishedItems = items.filter(item => item.published = true);
+            const publishedItems = items.filter(item => item.published === true);
             if (publishedItems.length > 0) {
                 resolve(publishedItems);
             } else {
@@ -47,17 +47,27 @@ module.exports = {
         });
     },
 
-    getCategories: function(){
+    getPublishedItemsByCategory: function(category) {
         return new Promise((resolve, reject) => {
-            if(categories.length > 0){
-                resolve(categories);
-            } else{
-                reject("no results returned")
+            const filteredItems = items.filter(item => item.published === true && item.category === category);
+            if (filteredItems.length > 0) {
+                resolve(filteredItems);
+            } else {
+                reject("no results returned");
             }
-        })
+        });
     },
 
-    // Function to add a new item
+    getCategories: function() {
+        return new Promise((resolve, reject) => {
+            if (categories.length > 0) {
+                resolve(categories);
+            } else {
+                reject("no results returned");
+            }
+        });
+    },
+
     addItem: function(itemData) {
         return new Promise((resolve, reject) => {
             if (typeof itemData.published === 'undefined') {
@@ -67,13 +77,24 @@ module.exports = {
             }
 
             itemData.id = items.length + 1; // Set the id of the new item
+            itemData.postDate = new Date().toISOString().split('T')[0]; // Set the postDate to current date (YYYY-MM-DD)
             items.push(itemData); // Add the new item to the items array
 
             resolve(itemData); // Resolve the promise with the new item
         });
     },
 
-    // Function to get items by category
+    getItemById: function(id) {
+        return new Promise((resolve, reject) => {
+            const item = items.find(item => item.id == id);
+            if (item) {
+                resolve(item);
+            } else {
+                reject("no results returned");
+            }
+        });
+    },
+
     getItemsByCategory: function(category) {
         return new Promise((resolve, reject) => {
             const filteredItems = items.filter(item => item.category == category);
@@ -85,28 +106,14 @@ module.exports = {
         });
     },
 
-    // Function to get items by minimum date
-    getItemsByMinDate: function(minDateStr) {
+    getItemsByMinDate: function(minDate) {
         return new Promise((resolve, reject) => {
-            const minDate = new Date(minDateStr);
-            const filteredItems = items.filter(item => new Date(item.postDate) >= minDate);
+            const filteredItems = items.filter(item => new Date(item.itemDate) >= new Date(minDate));
             if (filteredItems.length > 0) {
                 resolve(filteredItems);
             } else {
                 reject("no results returned");
             }
         });
-    },
-
-    // Function to get item by id
-    getItemById: function(id) {
-        return new Promise((resolve, reject) => {
-            const item = items.find(item => item.id == id);
-            if (item) {
-                resolve(item);
-            } else {
-                reject("no results returned");
-            }
-        });
     }
-}
+};
